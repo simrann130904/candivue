@@ -1,0 +1,519 @@
+[
+  {
+    "id": "PY-BEG-01",
+    "subject": "Python Programming",
+    "topic": "Data Structures",
+    "difficulty": "Beginner",
+    "question": "What is the difference between a list and a tuple in Python? When would you use one over the other?",
+    "expected_concepts": [
+      "mutable",
+      "immutable",
+      "syntax bracket",
+      "hashable",
+      "dictionary key",
+      "performance memory"
+    ],
+    "reference_answer": "In Python, lists are mutable (can be modified after creation with append, remove, etc.) and defined using square brackets `[]`. Tuples are immutable (cannot be altered once created) and defined using parentheses `()`. Because tuples are immutable, they are hashable and can be used as dictionary keys or set elements, whereas lists cannot. Tuples also have a smaller memory footprint and slightly faster iteration, making them ideal for fixed collections of heterogeneous data or record-like structures, while lists are intended for homogeneous collections of items that may change over time.",
+    "evaluation_criteria": "Full marks require explaining mutability differences, syntax/delimiters, hashability/dictionary key usage, and memory/performance implications.",
+    "follow_up_question": "Can a tuple contain mutable elements, and can such a tuple be used as a dictionary key?"
+  },
+  {
+    "id": "PY-BEG-02",
+    "subject": "Python Programming",
+    "topic": "Functions & Scope",
+    "difficulty": "Beginner",
+    "question": "Why is using a mutable default argument like `def func(a=[])` considered dangerous in Python?",
+    "expected_concepts": [
+      "default argument evaluated once",
+      "function definition time",
+      "persistent state across calls",
+      "None as default idiom",
+      "shared reference"
+    ],
+    "reference_answer": "In Python, default parameter values are evaluated only once when the function definition is executed, not each time the function is called. When a mutable object like a list or dictionary is used as a default value, that same instance is retained and shared across every invocation that does not supply an explicit argument. As a result, mutations made inside the function persist across subsequent calls, leading to unexpected side-effects. The recommended idiom is to use `None` as the default argument and initialize a new list inside the function body (`if a is None: a = []`).",
+    "evaluation_criteria": "Answer must clarify that default arguments are evaluated at definition time, explaining state persistence across calls and mentioning the `None` sentinel pattern.",
+    "follow_up_question": "How does Python's `__defaults__` attribute reflect this behavior on the function object?"
+  },
+  {
+    "id": "PY-INT-01",
+    "subject": "Python Programming",
+    "topic": "Generators & Iteration",
+    "difficulty": "Intermediate",
+    "question": "Explain how Python generators work using the `yield` keyword and why they are memory efficient compared to returning lists.",
+    "expected_concepts": [
+      "yield",
+      "generator function",
+      "lazy evaluation",
+      "iterator protocol",
+      "memory efficiency",
+      "state preservation"
+    ],
+    "reference_answer": "A Python generator is a special type of iterator created using a function containing one or more `yield` statements. Unlike a standard function that computes all results upfront and returns them as a collection (e.g., a list occupying O(N) memory), a generator computes values on demand (lazy evaluation). When `yield` is reached, the function pauses its execution, preserves its local state and instruction pointer, and yields the value to the caller. When `next()` is called again, execution resumes immediately after the yield. This achieves O(1) auxiliary memory consumption, allowing efficient processing of massive datasets or infinite streams.",
+    "evaluation_criteria": "Candidate must explain `yield`, pause/resume state preservation, lazy evaluation (on-demand), and O(1) vs O(N) memory complexity.",
+    "follow_up_question": "What happens under the hood when a generator terminates without another `yield` statement?"
+  },
+  {
+    "id": "PY-INT-02",
+    "subject": "Python Programming",
+    "topic": "Decorators",
+    "difficulty": "Intermediate",
+    "question": "What is a decorator in Python, how does it work, and why should you use `functools.wraps`?",
+    "expected_concepts": [
+      "higher-order function",
+      "first-class functions",
+      "wrapper function",
+      "functools.wraps",
+      "preserves metadata docstring name"
+    ],
+    "reference_answer": "A decorator in Python is a higher-order function that takes another function as an argument, extends or alters its behavior without modifying its source code, and returns a callable (typically an inner wrapper function). It leverages Python's first-class function support and uses the `@decorator_name` syntactic sugar. When wrapping a function, the wrapper takes on its own identity, losing the original function's name (`__name__`), docstring (`__doc__`), and signature. `functools.wraps` is a helper decorator applied to the inner wrapper that copies this metadata from the decorated function back onto the wrapper, ensuring introspection, debugging, and documentation tools work properly.",
+    "evaluation_criteria": "Should clearly describe taking a function and returning a wrapper, syntactic sugar `@`, and metadata preservation via `functools.wraps`.",
+    "follow_up_question": "How would you implement a decorator that takes arguments (e.g. `@retry(max_attempts=3)`)?"
+  },
+  {
+    "id": "PY-ADV-01",
+    "subject": "Python Programming",
+    "topic": "Concurrency & GIL",
+    "difficulty": "Advanced",
+    "question": "What is the Global Interpreter Lock (GIL) in CPython, and how does it affect multi-threaded CPU-bound versus I/O-bound programs?",
+    "expected_concepts": [
+      "CPython mutex lock",
+      "single thread bytecode execution",
+      "reference counting safety",
+      "CPU-bound vs IO-bound",
+      "multiprocessing",
+      "thread release during IO"
+    ],
+    "reference_answer": "The Global Interpreter Lock (GIL) is a mutex lock used by the standard CPython implementation to ensure that only one native OS thread executes Python bytecode at any given moment. It was introduced to simplify thread safety for CPython's memory management and reference counting. For CPU-bound tasks (e.g., intensive mathematical computations), multi-threading provides no performance gain and can even be slower due to context switching overhead and GIL contention; such tasks should use `multiprocessing` to run on multiple distinct interpreter instances. However, for I/O-bound tasks (e.g., network requests, disk read/write, database calls), the GIL is released while waiting for external I/O, allowing multi-threading to achieve high concurrency.",
+    "evaluation_criteria": "Must define the GIL as a CPython mutex restricting bytecode execution to one thread, link it to reference counting/memory safety, and contrast CPU-bound (needs multiprocessing) vs I/O-bound (threads release GIL during I/O).",
+    "follow_up_question": "What recent developments in Python (such as PEP 703) address free-threading in CPython?"
+  },
+  {
+    "id": "PY-ADV-02",
+    "subject": "Python Programming",
+    "topic": "Memory Management",
+    "difficulty": "Advanced",
+    "question": "How does Python manage memory under the hood? Discuss reference counting, cyclic garbage collection, and generations.",
+    "expected_concepts": [
+      "reference counting",
+      "cyclic references",
+      "generational garbage collection",
+      "generation 0 1 2",
+      "gc module",
+      "pymalloc arena pools"
+    ],
+    "reference_answer": "CPython's primary memory management mechanism is reference counting: every object tracks how many references point to it (via `ob_refcnt`). When this count drops to zero, the object's memory is deallocated immediately. However, reference counting alone cannot reclaim cyclic references (e.g., object A refers to B, and B refers to A). To resolve this, Python runs a secondary cyclic garbage collector based on generational heuristics (Generations 0, 1, and 2). New objects start in Gen 0. If they survive a GC pass, they are promoted to older generations which are collected less frequently based on allocation/deallocation thresholds. Additionally, small object allocation is managed by `pymalloc` using Arenas, Pools, and Blocks to minimize OS malloc overhead.",
+    "evaluation_criteria": "Must cover reference counting as primary mechanism, failure mode with reference cycles, cyclic GC with 3 generations (0, 1, 2), and optional mention of pymalloc.",
+    "follow_up_question": "How can weak references (`weakref` module) help prevent circular references?"
+  },
+  {
+    "id": "SQL-BEG-01",
+    "subject": "SQL",
+    "topic": "Filtering & Aggregation",
+    "difficulty": "Beginner",
+    "question": "What is the difference between the WHERE clause and the HAVING clause in SQL?",
+    "expected_concepts": [
+      "WHERE filters individual rows",
+      "HAVING filters aggregated groups",
+      "execution before vs after GROUP BY",
+      "aggregate functions in HAVING",
+      "performance order of execution"
+    ],
+    "reference_answer": "The `WHERE` clause filters individual rows before any grouping or aggregation takes place. It cannot contain aggregate functions like `SUM()`, `AVG()`, or `COUNT()`. In contrast, the `HAVING` clause filters summarized groups after the `GROUP BY` clause has been processed. It is specifically designed to evaluate conditions involving aggregate expressions (e.g., `HAVING COUNT(*) > 5`). In query execution order, `FROM` and `WHERE` are evaluated first, followed by `GROUP BY`, and then `HAVING` filters the grouped result set.",
+    "evaluation_criteria": "Must contrast row-level filtering before grouping (WHERE) with group-level filtering after grouping (HAVING), and explicitly mention aggregate function compatibility.",
+    "follow_up_question": "Can you use both WHERE and HAVING in the same query? Provide a short example."
+  },
+  {
+    "id": "SQL-BEG-02",
+    "subject": "SQL",
+    "topic": "Joins",
+    "difficulty": "Beginner",
+    "question": "Explain the differences between INNER JOIN, LEFT JOIN, and FULL OUTER JOIN with examples.",
+    "expected_concepts": [
+      "INNER JOIN matches both tables",
+      "LEFT JOIN all left rows plus matching right",
+      "NULL values for non-matches",
+      "FULL OUTER JOIN all rows from both tables",
+      "ON predicate"
+    ],
+    "reference_answer": "An `INNER JOIN` returns only the rows that satisfy the join condition in both tables; unmatched rows from either side are discarded. A `LEFT JOIN` (or LEFT OUTER JOIN) returns all records from the left table along with matched records from the right table; if no match exists in the right table, columns from the right table are populated with `NULL`. A `FULL OUTER JOIN` returns all records when there is a match in either the left or right table; if rows in one table have no corresponding match in the other, `NULL` values fill the missing columns.",
+    "evaluation_criteria": "Must clearly define all three join types, emphasize the role of NULL for unmatched rows in outer joins, and state when each should be chosen.",
+    "follow_up_question": "What is a CROSS JOIN and how many rows does it produce relative to the input tables?"
+  },
+  {
+    "id": "SQL-INT-01",
+    "subject": "SQL",
+    "topic": "Common Table Expressions & Subqueries",
+    "difficulty": "Intermediate",
+    "question": "What is a Common Table Expression (CTE) in SQL, and what advantages does it offer over nested subqueries?",
+    "expected_concepts": [
+      "WITH clause",
+      "temporary named result set",
+      "readability maintainability",
+      "recursive CTE",
+      "multiple references in same query"
+    ],
+    "reference_answer": "A Common Table Expression (CTE) is a temporary named result set defined at the beginning of an SQL statement using the `WITH` keyword. Unlike deeply nested subqueries, CTEs enhance readability, modularity, and maintainability by structuring complex transformations into sequential, human-readable steps. A single CTE can be referenced multiple times within the outer query without repeating subquery logic. Furthermore, CTEs support recursive queries (`WITH RECURSIVE`), which are indispensable for querying hierarchical or graph-like structures such as organizational charts, file systems, and bill-of-materials.",
+    "evaluation_criteria": "Candidate must mention the `WITH` syntax, temporary named result set, improved code readability/maintainability, multiple query reuse, and recursive query capabilities.",
+    "follow_up_question": "Are CTEs materialized or inlined by default in database engines like PostgreSQL or SQLite?"
+  },
+  {
+    "id": "SQL-INT-02",
+    "subject": "SQL",
+    "topic": "Indexing & Performance",
+    "difficulty": "Intermediate",
+    "question": "What is a database index, how does a B-Tree index work, and what are the trade-offs of having too many indexes?",
+    "expected_concepts": [
+      "B-Tree balanced tree structure",
+      "O(log N) lookup time",
+      "clustered vs non-clustered index",
+      "write overhead insert update delete",
+      "storage disk overhead"
+    ],
+    "reference_answer": "A database index is an auxiliary data structure (most commonly a balanced B-Tree) that accelerates data retrieval queries without scanning every row in a table (O(log N) vs O(N)). In a B-Tree, nodes store sorted keys and pointers; traversals from root to leaf efficiently locate matching row pointers or physical pages. A clustered index defines the physical storage order of table rows (one per table), while non-clustered indexes maintain a separate structure pointing back to table rows. The primary trade-offs of excessive indexing are: write penalty (every `INSERT`, `UPDATE`, and `DELETE` must update all relevant indexes, degrading write throughput), increased disk storage consumption, and potential query optimizer confusion.",
+    "evaluation_criteria": "Must cover B-tree lookup acceleration, clustered vs non-clustered distinction, and explicit trade-offs: write overhead and disk space.",
+    "follow_up_question": "What is a composite index and why is the column order crucial (leading column principle)?"
+  },
+  {
+    "id": "SQL-ADV-01",
+    "subject": "SQL",
+    "topic": "Window Functions",
+    "difficulty": "Advanced",
+    "question": "Explain SQL Window Functions. What is the difference between `ROW_NUMBER()`, `RANK()`, and `DENSE_RANK()`, and what does `PARTITION BY` do?",
+    "expected_concepts": [
+      "OVER clause",
+      "does not collapse rows",
+      "PARTITION BY divides into subsets",
+      "ORDER BY within window",
+      "ROW_NUMBER sequential unique",
+      "RANK gaps for ties",
+      "DENSE_RANK no gaps for ties"
+    ],
+    "reference_answer": "Window functions perform calculations across a set of table rows related to the current row without collapsing multiple rows into a single output row (unlike `GROUP BY`). They use the `OVER()` clause, where `PARTITION BY` divides data into independent partitions/subsets, and `ORDER BY` defines the sequence within each partition. When ranking ties (e.g. scores 100, 90, 90, 80): `ROW_NUMBER()` assigns strictly sequential integers without considering duplicates (1, 2, 3, 4); `RANK()` assigns identical ranks to ties and skips subsequent ranks to maintain cumulative count (1, 2, 2, 4); and `DENSE_RANK()` assigns identical ranks to ties without skipping ranks (1, 2, 2, 3).",
+    "evaluation_criteria": "Must explain that rows are not collapsed, describe `PARTITION BY`, and accurately differentiate the tie-handling behavior of `ROW_NUMBER`, `RANK`, and `DENSE_RANK` with concrete numerical examples.",
+    "follow_up_question": "How does the `ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW` frame specification influence a running total?"
+  },
+  {
+    "id": "SQL-ADV-02",
+    "subject": "SQL",
+    "topic": "Query Optimization",
+    "difficulty": "Advanced",
+    "question": "What makes a query 'SARGable', and how do execution plans help diagnose slow queries?",
+    "expected_concepts": [
+      "SARGable Search Argument Able",
+      "functions on indexed columns disable index",
+      "leading wildcard LIKE %term",
+      "EXPLAIN EXPLAIN ANALYZE",
+      "full table scan vs index seek"
+    ],
+    "reference_answer": "A query is 'SARGable' (Search Argument Able) when its predicates allow the database engine to utilize indexes directly rather than falling back to an expensive full table scan. Wrapping an indexed column in a function (e.g., `WHERE YEAR(created_at) = 2024` instead of `WHERE created_at >= '2024-01-01' AND created_at < '2025-01-01'`) or using leading wildcards (`WHERE name LIKE '%smith'`) destroys SARGability because the engine must compute the function for every single row. Database execution plans (obtained via `EXPLAIN` or `EXPLAIN ANALYZE`) display the query optimizer's chosen execution tree: whether it performs sequential scans vs index seeks, join algorithms (Nested Loop, Hash Join, Merge Join), estimated vs actual row counts, and memory/cost footprints, allowing developers to target bottlenecks accurately.",
+    "evaluation_criteria": "Candidate must define SARGable, give an example of non-SARGable vs SARGable predicate, and explain how EXPLAIN highlights index seeks vs table scans.",
+    "follow_up_question": "What are implicit data type conversions and how do they impact SARGability?"
+  },
+  {
+    "id": "OOP-BEG-01",
+    "subject": "Object-Oriented Programming",
+    "topic": "Core Principles",
+    "difficulty": "Beginner",
+    "question": "Describe the four core principles of Object-Oriented Programming (OOP) and provide a concise real-world analogy for each.",
+    "expected_concepts": [
+      "Encapsulation data hiding methods",
+      "Abstraction hiding internal complexity interface",
+      "Inheritance code reuse parent child",
+      "Polymorphism multiple forms overriding overloading"
+    ],
+    "reference_answer": "The four core pillars of OOP are: 1. Encapsulation: Bundling data (attributes) and methods that operate on that data into a single unit (class) while restricting direct outside access to internal state (e.g., a capsule containing medicine or a bank account protecting balance with getters/setters). 2. Abstraction: Exposing only essential interface details while hiding underlying implementation complexity (e.g., driving a car using steering wheel and pedals without needing to know engine mechanics). 3. Inheritance: Mechanism where a child class derives attributes and behavior from a parent class, promoting code reuse (e.g., a `Dog` class inheriting from an `Animal` class). 4. Polymorphism: The ability for different classes to respond to the same method call in their own specific ways (e.g., calling `draw()` on `Circle` and `Square`, or runtime method overriding).",
+    "evaluation_criteria": "Must accurately name and clearly explain all four principles (Encapsulation, Abstraction, Inheritance, Polymorphism) with practical analogies.",
+    "follow_up_question": "How does Polymorphism improve code maintainability when adding new features?"
+  },
+  {
+    "id": "OOP-BEG-02",
+    "subject": "Object-Oriented Programming",
+    "topic": "Polymorphism",
+    "difficulty": "Beginner",
+    "question": "What is the difference between Method Overloading and Method Overriding?",
+    "expected_concepts": [
+      "Overloading same method name different parameters",
+      "Overriding same signature subclass parent",
+      "Compile-time vs runtime polymorphism",
+      "Same class vs inheritance relationship"
+    ],
+    "reference_answer": "Method Overloading occurs within the same class where multiple methods share the identical name but have different parameter lists (different types, number, or order of arguments). It is resolved at compile time (static/compile-time polymorphism). Method Overriding occurs across a parent-child inheritance hierarchy where a subclass provides its own specific implementation of a method already declared in its superclass, using the exact same signature (name, parameter list, and return type). Overriding is resolved at runtime based on the actual object instance (dynamic/runtime polymorphism). Note: in Python, traditional overloading is handled via default arguments, variable arguments (`*args`), or `functools.singledispatch`.",
+    "evaluation_criteria": "Must contrast parameter variations in same class vs signature matching in subclasses, and compile-time vs runtime dispatch.",
+    "follow_up_question": "Why doesn't standard Python support method overloading by parameter count natively?"
+  },
+  {
+    "id": "OOP-INT-01",
+    "subject": "Object-Oriented Programming",
+    "topic": "Design & Inheritance",
+    "difficulty": "Intermediate",
+    "question": "What does the principle 'Composition over Inheritance' mean, and why is composition frequently preferred in modern software architecture?",
+    "expected_concepts": [
+      "has-a vs is-a relationship",
+      "tight coupling fragile base class",
+      "runtime flexibility swapping components",
+      "encapsulation maintenance",
+      "single responsibility"
+    ],
+    "reference_answer": "'Composition over Inheritance' is an OOP design guideline stating that classes should achieve polymorphic behavior and code reuse by containing instances of other classes ('has-a' relationship) rather than extending base classes ('is-a' relationship). Deep inheritance hierarchies create tight coupling; changes to a base class can unexpectedly break subclasses (the 'fragile base class problem'). Composition keeps components loosely coupled, preserves encapsulation (since internal state is not exposed via `protected`), and allows dynamic runtime swapping of behaviors via dependency injection (e.g., plugging in a different `PaymentGateway` or `Logger` strategy at runtime).",
+    "evaluation_criteria": "Must explain 'has-a' vs 'is-a', fragile base class issue, loose coupling, and runtime flexibility through dependency injection/delegation.",
+    "follow_up_question": "In what specific scenarios is inheritance still the superior design choice?"
+  },
+  {
+    "id": "OOP-INT-02",
+    "subject": "Object-Oriented Programming",
+    "topic": "Interfaces & Abstract Classes",
+    "difficulty": "Intermediate",
+    "question": "What are the key differences between an Abstract Class and an Interface?",
+    "expected_concepts": [
+      "Abstract class can have state fields and concrete methods",
+      "Interface pure contract",
+      "Multiple inheritance of interfaces",
+      "Partial implementation",
+      "Python abc module ABC abstractmethod"
+    ],
+    "reference_answer": "An Abstract Class is a class that cannot be instantiated on its own and serves as a blueprint for derived classes; it can contain both abstract methods (without implementation) and fully implemented concrete methods, as well as instance variables/state. An Interface is a strict contract specifying what methods a class must implement without holding instance state (in traditional languages like Java/C#; in Python, abstract classes with pure `@abstractmethod` decorators or `typing.Protocol` serve this purpose). Classes can typically implement multiple interfaces, but many languages restrict inheritance to a single abstract class. Use abstract classes when sharing code/state among closely related entities, and interfaces when defining contracts across unrelated classes.",
+    "evaluation_criteria": "Must discuss partial implementation vs pure contract, instance state/fields, and single vs multiple inheritance rules.",
+    "follow_up_question": "What is Python's `Protocol` from the `typing` module and how does it enable structural subtyping (duck typing)?"
+  },
+  {
+    "id": "OOP-ADV-01",
+    "subject": "Object-Oriented Programming",
+    "topic": "SOLID Principles",
+    "difficulty": "Advanced",
+    "question": "Explain each of the five SOLID design principles and give an example of how violating the Liskov Substitution Principle (LSP) causes bugs.",
+    "expected_concepts": [
+      "Single Responsibility Principle SRP",
+      "Open Closed Principle OCP",
+      "Liskov Substitution Principle LSP",
+      "Interface Segregation Principle ISP",
+      "Dependency Inversion Principle DIP",
+      "Square Rectangle problem for LSP"
+    ],
+    "reference_answer": "The SOLID principles are: 1. Single Responsibility (SRP): A class should have only one reason to change. 2. Open/Closed (OCP): Software entities should be open for extension but closed for modification. 3. Liskov Substitution (LSP): Subtypes must be substitutable for their base types without altering program correctness. 4. Interface Segregation (ISP): Clients should not be forced to depend on interfaces they do not use. 5. Dependency Inversion (DIP): High-level modules should depend on abstractions, not concrete details. A classic violation of LSP is the Rectangle-Square problem: if `Square` inherits from `Rectangle`, overriding `setWidth` to modify both width and height breaks assumptions of any client function expecting `rect.setWidth(5)` to leave height unaffected, violating client contracts and causing unexpected bugs.",
+    "evaluation_criteria": "Must articulate all five principles correctly and detail an LSP violation (such as Square-Rectangle or ReadOnlyCollection) showing behavioral contract breakdown.",
+    "follow_up_question": "How does Dependency Inversion differ from Dependency Injection?"
+  },
+  {
+    "id": "OOP-ADV-02",
+    "subject": "Object-Oriented Programming",
+    "topic": "Design Patterns",
+    "difficulty": "Advanced",
+    "question": "Compare the Factory Pattern and the Singleton Pattern. How do you implement a thread-safe Singleton in modern software?",
+    "expected_concepts": [
+      "Singleton single instance global access",
+      "Factory decouples object creation from client",
+      "Double-checked locking thread safety",
+      "Volatile synchronization",
+      "Python __new__ or metaclass singleton"
+    ],
+    "reference_answer": "The Singleton Pattern ensures that a class has only one instance throughout the application lifecycle and provides a global access point to it (often used for database connection pools or configuration managers). The Factory Pattern (Factory Method / Abstract Factory) delegates object creation to specialized methods or classes, decoupling client code from concrete instantiation logic. To implement a thread-safe Singleton, you must prevent race conditions where multiple threads enter initialization concurrently. In multi-threaded environments, double-checked locking is used: checking if the instance is null, acquiring a lock/mutex, and re-checking before instantiation. In Python, this is achieved cleanly using a locking wrapper in `__new__` or a custom metaclass with a `threading.Lock`.",
+    "evaluation_criteria": "Must clearly define both patterns, explain thread safety risks during lazy initialization, and provide double-checked locking or mutex-protected implementation logic.",
+    "follow_up_question": "Why is the Singleton pattern frequently criticized as an anti-pattern in unit testing?"
+  },
+  {
+    "id": "DBMS-BEG-01",
+    "subject": "Database Management Systems",
+    "topic": "Keys & Integrity",
+    "difficulty": "Beginner",
+    "question": "What are Primary Keys, Candidate Keys, and Foreign Keys in relational database design?",
+    "expected_concepts": [
+      "Candidate Key minimal superkey unique",
+      "Primary Key chosen unique non-null identifier",
+      "Foreign Key referential integrity points to primary key",
+      "NULL constraints",
+      "Cascading actions on delete update"
+    ],
+    "reference_answer": "A Candidate Key is any minimal set of attributes that uniquely identifies a row in a table (a relation can have multiple candidate keys, none of which can contain unnecessary attributes). A Primary Key is the specific candidate key selected by the database designer to uniquely identify each tuple in the table; it must strictly contain unique, non-null values (only one primary key per table). A Foreign Key is a field (or collection of fields) in one table that references the Primary Key of another table, enforcing referential integrity and modeling relationships between entities. Cascading constraints (`ON DELETE CASCADE`, `ON UPDATE CASCADE`) determine how deletions or modifications in the referenced table propagate.",
+    "evaluation_criteria": "Must accurately contrast Candidate Key vs Primary Key (minimal uniqueness, non-null) and define Foreign Key with referential integrity.",
+    "follow_up_question": "Can a Foreign Key reference a column that is not a Primary Key?"
+  },
+  {
+    "id": "DBMS-BEG-02",
+    "subject": "Database Management Systems",
+    "topic": "Transactions & ACID",
+    "difficulty": "Beginner",
+    "question": "Explain the ACID properties of database transactions using a bank money-transfer scenario.",
+    "expected_concepts": [
+      "Atomicity all or nothing rollback",
+      "Consistency valid state constraints preserved",
+      "Isolation concurrent transactions independent",
+      "Durability committed changes survive system crashes"
+    ],
+    "reference_answer": "ACID properties ensure reliable processing of database transactions: 1. Atomicity: 'All or nothing'. In a transfer of $100 from Account A to Account B, either both the debit of A and credit of B succeed, or if a failure occurs halfway, the transaction is rolled back so no money disappears. 2. Consistency: Ensures transactions transition the database from one valid state to another, preserving all integrity constraints (e.g., total funds in the bank system remain balanced, and account balances do not drop below zero). 3. Isolation: Concurrent transactions execute without interfering with one another; intermediate states of the transfer are invisible to other transactions until committed. 4. Durability: Once the transaction commits, its modifications are permanently recorded in non-volatile storage (via WAL/disk) and survive subsequent power outages or system crashes.",
+    "evaluation_criteria": "Candidate must explain all four ACID terms clearly and relate them directly to the banking transfer scenario.",
+    "follow_up_question": "Which component of a DBMS is responsible for guaranteeing Durability?"
+  },
+  {
+    "id": "DBMS-INT-01",
+    "subject": "Database Management Systems",
+    "topic": "Normalization",
+    "difficulty": "Intermediate",
+    "question": "Walk through database normalization from 1NF to 3NF and BCNF. What anomalies does normalization eliminate?",
+    "expected_concepts": [
+      "Insertion deletion update anomalies",
+      "1NF atomic values no repeating groups",
+      "2NF 1NF plus no partial functional dependencies",
+      "3NF 2NF plus no transitive dependencies",
+      "BCNF every determinant is a candidate key"
+    ],
+    "reference_answer": "Normalization organizes relational schemas to eliminate redundancy and prevent insertion, update, and deletion anomalies: 1. 1NF (First Normal Form): All column values must be atomic (indivisible), rows must be uniquely identified by a primary key, and there are no repeating groups. 2. 2NF (Second Normal Form): Must be in 1NF, and all non-key attributes must be fully functionally dependent on the entire primary key (eliminating partial dependency on composite keys). 3. 3NF (Third Normal Form): Must be in 2NF, and no non-key attribute can be transitively dependent on the primary key (non-key attributes depend strictly on the primary key, 'the key, the whole key, and nothing but the key'). 4. BCNF (Boyce-Codd Normal Form): A stricter version of 3NF where for every functional dependency X -> Y, X must be a candidate key (every determinant is a candidate key).",
+    "evaluation_criteria": "Must define the three anomalies and provide exact definitions for 1NF (atomicity), 2NF (no partial dependency), 3NF (no transitive dependency), and BCNF (determinant is candidate key).",
+    "follow_up_question": "Why do high-throughput analytical data warehouses often intentionally denormalize data?"
+  },
+  {
+    "id": "DBMS-INT-02",
+    "subject": "Database Management Systems",
+    "topic": "Concurrency & Isolation",
+    "difficulty": "Intermediate",
+    "question": "What are the four ANSI SQL transaction isolation levels and the concurrency anomalies they prevent?",
+    "expected_concepts": [
+      "Dirty Read uncommitted read",
+      "Non-repeatable Read changed row value",
+      "Phantom Read new rows inserted",
+      "Read Uncommitted Read Committed Repeatable Read Serializable",
+      "Locks and MVCC Multi-Version Concurrency Control"
+    ],
+    "reference_answer": "The four standard isolation levels balance concurrency against data consistency: 1. Read Uncommitted: Transactions can read uncommitted changes from other transactions. Suffers from Dirty Reads, Non-repeatable Reads, and Phantom Reads. 2. Read Committed: Guarantees that any read data has been committed at the moment of reading. Prevents Dirty Reads, but Non-repeatable Reads (another transaction modifies and commits a row you read earlier) and Phantom Reads can occur. 3. Repeatable Read: Ensures that if a transaction reads a row, re-reading it yields the exact same data. Prevents Dirty Reads and Non-repeatable Reads, but may allow Phantom Reads (new rows inserted that match query filters). 4. Serializable: The strictest level, executing transactions as if they ran serially one after another. Prevents all anomalies (Dirty Reads, Non-repeatable Reads, and Phantoms) through range locking or Multi-Version Concurrency Control (MVCC) with serialization checks.",
+    "evaluation_criteria": "Must accurately pair the four isolation levels with the three concurrency phenomena (Dirty Read, Non-repeatable Read, Phantom Read).",
+    "follow_up_question": "How does MVCC (Multi-Version Concurrency Control) allow readers not to block writers and writers not to block readers?"
+  },
+  {
+    "id": "DBMS-ADV-01",
+    "subject": "Database Management Systems",
+    "topic": "Durability & Recovery",
+    "difficulty": "Advanced",
+    "question": "How does Write-Ahead Logging (WAL) work, and how does the ARIES recovery algorithm ensure durability during a crash?",
+    "expected_concepts": [
+      "Write-Ahead Logging WAL before flushing dirty pages",
+      "Log sequence numbers LSN",
+      "ARIES algorithm",
+      "Analysis phase",
+      "Redo phase repeat history",
+      "Undo phase rollback active uncommitted transactions"
+    ],
+    "reference_answer": "Write-Ahead Logging (WAL) is the fundamental protocol ensuring ACID durability: any modification to database data must be written to stable log storage on disk before the corresponding dirty data pages are flushed to table files. This enables fast sequential append-only writes while deferring expensive random I/O. When a crash occurs, recovery algorithms like ARIES (Algorithms for Recovery and Isolation Exploiting Semantics) execute three distinct phases: 1. Analysis Phase: Scans the log forward from the latest checkpoint to reconstruct the state of the system at the crash point, identifying active transactions (losers) and dirty pages. 2. Redo Phase: Replays all logged actions forward from the earliest unwritten page modification ('repeating history') to restore the exact pre-crash state, whether committed or uncommitted. 3. Undo Phase: Scans backward to undo the effects of all uncommitted transactions (loser transactions), writing Compensation Log Records (CLRs) to ensure idempotency if the system crashes again during recovery.",
+    "evaluation_criteria": "Must explain WAL principle (log flushed before dirty page write), and detail the three ARIES phases: Analysis, Redo (repeat history), and Undo (rollback active transactions with CLRs).",
+    "follow_up_question": "What is a Checkpoint and why is it critical for bounding WAL recovery time?"
+  },
+  {
+    "id": "DBMS-ADV-02",
+    "subject": "Database Management Systems",
+    "topic": "Distributed Databases & CAP",
+    "difficulty": "Advanced",
+    "question": "Explain the CAP Theorem and discuss the trade-offs between Sharding, Partitioning, and Replication in scalable database systems.",
+    "expected_concepts": [
+      "Consistency Availability Partition Tolerance",
+      "Network partition inevitability",
+      "CP vs AP systems",
+      "Sharding horizontal split across servers",
+      "Partitioning split within single instance",
+      "Replication master-slave multi-master consistency latency"
+    ],
+    "reference_answer": "The CAP theorem states that in any distributed data store, you can only guarantee at most two out of three properties: Consistency (every read receives the most recent write or an error), Availability (every non-failing node returns a non-error response without guarantee of latest write), and Partition Tolerance (the system continues operating despite dropped or delayed network messages). Because network partitions are physically unavoidable in distributed networks, systems must choose between Consistency (CP, rejecting requests if nodes cannot sync) or Availability (AP, returning stale data). Horizontal scaling techniques include: 1. Partitioning: Splitting large tables into smaller chunks (range, hash, or list) within a single database instance to boost query performance. 2. Sharding: Distributing database partitions across separate physical machines, requiring a shard key to route queries. 3. Replication: Copying data across multiple nodes for high availability and read scaling (master-replica or leaderless), which introduces replication lag and eventual consistency trade-offs.",
+    "evaluation_criteria": "Must explain CAP theorem nuances (why P is non-negotiable), contrast CP vs AP, and clearly differentiate Partitioning (single node), Sharding (multi-node distribution), and Replication (redundancy/read scaling).",
+    "follow_up_question": "How does the PACELC theorem expand on CAP by addressing latency under normal operations?"
+  },
+  {
+    "id": "CN-BEG-01",
+    "subject": "Computer Networks",
+    "topic": "Network Models",
+    "difficulty": "Beginner",
+    "question": "Compare the 7 layers of the OSI model with the 4 layers of the TCP/IP model, detailing the core function of each layer.",
+    "expected_concepts": [
+      "Physical Data Link Network Transport Session Presentation Application",
+      "TCP/IP Network Interface Internet Transport Application",
+      "Encapsulation headers payloads",
+      "Packets frames segments bits",
+      "Port numbers IP addresses MAC addresses"
+    ],
+    "reference_answer": "The OSI model has 7 conceptual layers: 1. Physical: Transmission of raw bitstreams over physical media. 2. Data Link: Node-to-node framing, MAC addressing, and error detection (Ethernet, Wi-Fi). 3. Network: Logical addressing (IP) and routing packets across subnets (IP, ICMP). 4. Transport: End-to-end host communication, segmentation, port addressing, flow/error control (TCP, UDP). 5. Session: Managing sessions/dialogues between applications. 6. Presentation: Data translation, compression, encryption (SSL/TLS, ASCII, JPEG). 7. Application: User-facing network processes (HTTP, DNS, SSH). The practical TCP/IP model consolidates these into 4 layers: Network Access/Link (OSI 1 & 2), Internet (OSI 3), Transport (OSI 4), and Application (OSI 5, 6, & 7). Data is encapsulated from segments to packets to frames to raw bits.",
+    "evaluation_criteria": "Must list all 7 OSI layers in order, map them to the 4 TCP/IP layers, and specify data units (bits, frames, packets, segments).",
+    "follow_up_question": "At which layer of the OSI model do traditional routers operate versus traditional network switches?"
+  },
+  {
+    "id": "CN-BEG-02",
+    "subject": "Computer Networks",
+    "topic": "Transport Protocols",
+    "difficulty": "Beginner",
+    "question": "What are the primary differences between TCP and UDP? When would you choose UDP over TCP?",
+    "expected_concepts": [
+      "Connection-oriented vs connectionless",
+      "Reliability acknowledgments retransmissions",
+      "Three-way handshake SYN SYN-ACK ACK",
+      "Ordering sequencing flow control",
+      "Low latency lightweight header streaming gaming DNS"
+    ],
+    "reference_answer": "TCP (Transmission Control Protocol) is a connection-oriented, reliable protocol. It establishes a connection via a 3-way handshake (SYN, SYN-ACK, ACK), guarantees in-order delivery of data bytes through sequence numbers and acknowledgments, and provides flow control (sliding window) and congestion control. This makes TCP ideal for applications where data integrity is paramount, such as web browsing (HTTP), email (SMTP), and file transfer (FTP). In contrast, UDP (User Datagram Protocol) is connectionless, lightweight (8-byte header vs 20-60 byte TCP header), and provides no guarantee of delivery, ordering, or retransmission. UDP is preferred where low latency and speed matter more than occasional packet loss, such as live video streaming, VoIP, multiplayer gaming, and lightweight request-response protocols like DNS and DHCP.",
+    "evaluation_criteria": "Must compare connection establishment, reliability/acknowledgment guarantees, packet overhead, and provide realistic use-case justification for choosing UDP.",
+    "follow_up_question": "How does UDP achieve multiplexing and demultiplexing without a connection state?"
+  },
+  {
+    "id": "CN-INT-01",
+    "subject": "Computer Networks",
+    "topic": "Web Architecture",
+    "difficulty": "Intermediate",
+    "question": "Explain step-by-step what happens when a user types 'https://www.example.com' into their web browser and presses Enter.",
+    "expected_concepts": [
+      "Browser cache DNS resolution recursive resolver",
+      "TCP three-way handshake SYN SYN-ACK ACK",
+      "TLS handshake certificates key exchange",
+      "HTTP GET request and response headers status codes",
+      "Browser rendering DOM CSSOM JavaScript layout paint"
+    ],
+    "reference_answer": "1. URL Parsing & DNS Resolution: The browser checks browser cache, OS cache, hosts file, and router cache. If missing, it queries a recursive DNS resolver, which traverses Root, TLD (.com), and Authoritative nameservers to resolve the IP address. 2. TCP Handshake: The browser opens a TCP connection to the server's IP address on port 443 via a 3-way handshake (SYN -> SYN-ACK -> ACK). 3. TLS Handshake: For HTTPS, TLS negotiation takes place: the server presents its digital certificate, client verifies the Certificate Authority (CA) signature, and asymmetric encryption (e.g. ECDHE) is used to securely exchange symmetric session keys. 4. HTTP Request & Response: The browser transmits an encrypted `HTTP GET /` request. The web server processes it and returns an HTTP response (status code 200 OK, headers, HTML payload). 5. Parsing & Rendering: The browser constructs the DOM tree and CSSOM tree, executes JavaScript, calculates the layout, and paints pixels onto the screen.",
+    "evaluation_criteria": "Must cover DNS lookup hierarchy, TCP 3-way handshake, TLS handshake verification/key exchange, HTTP request/response cycle, and browser rendering pipeline.",
+    "follow_up_question": "How does HTTP Keep-Alive (persistent connections) optimize this lifecycle for subsequent asset downloads?"
+  },
+  {
+    "id": "CN-INT-02",
+    "subject": "Computer Networks",
+    "topic": "DNS Architecture",
+    "difficulty": "Intermediate",
+    "question": "How does the Domain Name System (DNS) work? Differentiate between recursive and iterative DNS queries.",
+    "expected_concepts": [
+      "Hierarchical tree root TLD authoritative",
+      "Recursive query resolver takes full responsibility",
+      "Iterative query returns referrals best effort",
+      "DNS caching TTL Time To Live",
+      "A AAAA CNAME MX records"
+    ],
+    "reference_answer": "DNS translates human-readable domain names into machine-routable IP addresses using an inverted hierarchical tree: Root servers (`.`), Top-Level Domain (TLD) servers (e.g., `.com`), and Authoritative nameservers that hold the actual zone records (`A`, `AAAA`, `CNAME`, `MX`). In a Recursive Query, the client (or stub resolver) asks a recursive resolver (like ISP or 8.8.8.8) to find the answer; the recursive resolver takes complete responsibility and does not respond until it has the final IP or an error. In an Iterative Query, the queried DNS server responds with the best answer it currently has or gives a referral to the next server down the chain (e.g. root refers to .com TLD, TLD refers to example.com authoritative), requiring the recursive resolver to query each step. DNS responses include a TTL (Time To Live) determining how long records can be cached locally.",
+    "evaluation_criteria": "Must contrast recursive (resolver does work) vs iterative (referral links returned) queries, and explain the hierarchical lookup sequence (Root -> TLD -> Authoritative).",
+    "follow_up_question": "What is DNS poisoning/spoofing and how does DNSSEC mitigate it?"
+  },
+  {
+    "id": "CN-ADV-01",
+    "subject": "Computer Networks",
+    "topic": "Application Protocols",
+    "difficulty": "Advanced",
+    "question": "Compare HTTP/1.1, HTTP/2, and HTTP/3. What major performance bottlenecks does each successive version eliminate?",
+    "expected_concepts": [
+      "HTTP 1.1 Head-of-Line blocking text-based pipelining",
+      "HTTP 2 multiplexing binary framing HPACK header compression",
+      "TCP Head-of-Line blocking packet loss stall",
+      "HTTP 3 QUIC protocol UDP-based",
+      "0-RTT connection resumption connection migration"
+    ],
+    "reference_answer": "HTTP/1.1 is text-based and introduced persistent TCP connections, but suffers from Application-Layer Head-of-Line (HoL) blocking: a slow response on a connection delays all subsequent queued requests. Browsers had to open 6 parallel TCP connections per host as a workaround. HTTP/2 resolved application HoL blocking by introducing a binary framing layer that enables multiplexing: multiple concurrent bidirectional streams interleave over a single shared TCP connection. It also introduced HPACK header compression and Server Push. However, HTTP/2 still suffered from Transport-Layer HoL blocking: because it relies on TCP, a single dropped packet causes the TCP sliding window to stall all multiplexed streams until retransmitted. HTTP/3 eliminates this by replacing TCP with QUIC over UDP: streams are truly independent so packet loss in one stream never blocks other streams. QUIC also combines transport and cryptographic handshakes for 0-RTT/1-RTT connection setup and enables IP-independent connection migration (via Connection IDs).",
+    "evaluation_criteria": "Must clearly define Application HoL blocking (HTTP/1.1) vs Transport HoL blocking (HTTP/2 on TCP) vs QUIC/UDP stream independence in HTTP/3, along with multiplexing and binary framing.",
+    "follow_up_question": "How does QUIC handle connection migration when a smartphone switches between Wi-Fi and mobile data?"
+  },
+  {
+    "id": "CN-ADV-02",
+    "subject": "Computer Networks",
+    "topic": "Transport Layer Congestion",
+    "difficulty": "Advanced",
+    "question": "How does TCP Congestion Control work? Explain Slow Start, Congestion Avoidance, Fast Retransmit, and Fast Recovery.",
+    "expected_concepts": [
+      "Congestion Window cwnd vs receiver window rwnd",
+      "Slow Start exponential growth ssthresh",
+      "Congestion Avoidance linear growth AIMD",
+      "Triple duplicate ACKs",
+      "Fast Retransmit without waiting for RTO timeout",
+      "Fast Recovery"
+    ],
+    "reference_answer": "TCP Congestion Control prevents a sender from overwhelming the network fabric. The sender regulates data transmission using a Congestion Window (`cwnd`), sending `min(cwnd, rwnd)`. 1. Slow Start: Begins with a small `cwnd` (e.g. 10 MSS) and doubles `cwnd` every Round Trip Time (RTT) (exponential growth: 1, 2, 4, 8...) until reaching a Slow Start Threshold (`ssthresh`) or packet loss occurs. 2. Congestion Avoidance: Once `cwnd >= ssthresh`, additive increase is applied (AIMD): `cwnd` increases linearly by 1 MSS per RTT to probe capacity safely. 3. Fast Retransmit: When 3 duplicate ACKs are received for the same segment, the sender infers packet loss without waiting for an expensive Retransmission Timeout (RTO) and immediately retransmits the missing segment. 4. Fast Recovery: Instead of resetting `cwnd` back to 1 MSS (which happens on a timeout), the sender sets `ssthresh = cwnd / 2`, adjusts `cwnd = ssthresh + 3 MSS`, and continues linear growth, avoiding the severe throughput collapse of slow start.",
+    "evaluation_criteria": "Must accurately describe `cwnd`, exponential growth in Slow Start, linear AIMD in Congestion Avoidance, 3 duplicate ACKs triggering Fast Retransmit, and Fast Recovery preserving throughput.",
+    "follow_up_question": "What is the difference between loss-based congestion control (like Reno or Cubic) and delay-based or model-based congestion control (like BBR)?"
+  }
+]
